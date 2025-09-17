@@ -1,0 +1,49 @@
+/* App Header */
+.app-header {
+  position: fixed;            /* sticky to top */
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;               /* fixed height */
+  display: flex;
+  justify-content: space-between; /* h1 left, controls right */
+  align-items: center;            /* vertical centering */
+  padding: 0 1.5rem;
+  background-color: var(--background-color);       /* match body background */
+  /*border-bottom: 10px solid #ff6700; /* subtle divider like deck cards */
+  z-index: 1000;
+  /*box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5); /* subtle elevation */
+}
+
+/* Header title */
+.app-header h1 {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* Header controls container */
+.nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* spacing between links/buttons */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 1rem;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.3rem;
+  }
+
+  .nav-controls {
+    gap: 0.5rem;
+  }
+}
+

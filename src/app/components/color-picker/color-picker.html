@@ -1,0 +1,30 @@
+<div class="color-picker-container">
+  <h2>Highlight Color</h2>
+  <div class="color-picker">
+    <input
+      type="color"
+      [value]="highlightColor()"
+      (input)="highlightColor.set($any($event.target).value)"
+    />
+    <span class="color-value">{{ highlightColor() }}</span>
+  </div>
+
+  <h2>Font Size</h2>
+  <div class="font-size-picker">
+    <button
+      class="font-size-btn"
+      (click)="decreaseFontSize()"
+      [disabled]="customFontSize() === fontSizeOptions[0]"
+    >
+      -
+    </button>
+    <span class="font-size-value">{{ customFontSize() }}rem</span>
+    <button
+      class="font-size-btn"
+      (click)="increaseFontSize()"
+      [disabled]="customFontSize() === fontSizeOptions[fontSizeOptions.length - 1]"
+    >
+      +
+    </button>
+  </div>
+</div>

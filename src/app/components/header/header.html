@@ -1,0 +1,17 @@
+<header class="app-header">
+  <h1>{{ title() }}</h1>
+
+  <nav class="nav-controls">
+    @if (!user()) {
+            <button (click)="handleLogin()">Log In</button>
+    }
+
+    @if (user()) {
+      <a [routerLink]="['/profile']">User Profile</a>
+      <a [routerLink]="['/decks']">Decks</a>
+      <a [routerLink]="['/options']">Options</a>
+      <button (click)="handleLogout()">Log Out</button>
+    }
+  </nav>
+</header>
+

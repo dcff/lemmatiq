@@ -1,0 +1,415 @@
+<!-- Review Completion Screen -->
+@if (reviewCompleted()) {
+  <div class="review-completion-screen">
+    <div class="completion-container">
+      <div class="completion-header">
+        <h2>Review Complete!</h2>
+      </div>
+
+      <div class="stats-container">
+        <div class="stat-card correct">
+          <div class="stat-number">{{ correctCount() }}</div>
+          <div class="stat-label">Correct</div>
+        </div>
+
+        <div class="stat-card incorrect">
+          <div class="stat-number">{{ incorrectCount() }}</div>
+          <div class="stat-label">Incorrect</div>
+        </div>
+
+        <div class="stat-card accuracy">
+          <div class="stat-number">{{ accuracyPercentage() }}%</div>
+          <div class="stat-label">Accuracy</div>
+        </div>
+
+        <div class="stat-card total">
+          <div class="stat-number">{{ totalReviewed() }}</div>
+          <div class="stat-label">Total Reviewed</div>
+        </div>
+      </div>
+
+      <div class="completion-actions">
+        <button
+          (click)="startNewReview()"
+          class="btn btn-secondary"
+          type="button">
+          Review Again
+        </button>
+
+        <button
+          (click)="navigateToDecks()"
+          class="btn btn-primary"
+          type="button">
+          Back to Decks
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Regular flashcard display (hidden when review is completed) -->
+@if (!reviewCompleted() && hasCards()) {
+  <div class="flashcard-container">
+
+    <!-- Progress bar -->
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="progress()"></div>
+      </div>
+      <div class="progress-text">
+        {{ currentIndex() + 1 }} / {{ cards().length }}
+        ({{ progress() }}%)
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    @if (showDeleteConfirmation()) {
+      <div class="modal-overlay">
+        <div class="modal">
+          <h3>Delete Card</h3>
+          <p>Are you sure you want to delete this card? This action cannot be undone.</p>
+          <div class="modal-actions">
+            <button
+              (click)="deleteCurrentCard()"
+              class="btn btn-danger"
+              [disabled]="processingDelete()"
+              type="button">
+              {{ processingDelete() ? 'Deleting...' : 'Delete' }}
+            </button>
+            <button (click)="cancelDelete()" class="btn btn-secondary" type="button">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Edit Mode -->
+    @if (isEditing() && currentCard()) {
+      <div class="edit-container">
+        <h3>Edit Card</h3>
+
+        <div class="edit-fields">
+          <!-- Main Fields -->
+          @if (mainFields().length > 0) {
+            <div class="field-group">
+              <h4>Main Fields</h4>
+              @for (field of mainFields(); track field.key) {
+                <div class="edit-field">
+                  <label>{{ formatFieldName(field.key) }}:</label>
+                  <textarea
+                    [value]="editedCard()[field.key] || ''"
+                    (input)="updateEditedField(field.key, $any($event.target).value)"
+                    class="edit-input"
+                    rows="3">
+                  </textarea>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Auxiliary Date Fields -->
+          @if (auxiliaryDateFields().length > 0) {
+            <div class="field-group">
+              <h4>Date Fields</h4>
+              @for (field of auxiliaryDateFields(); track field.key) {
+                <div class="edit-field">
+                  <label>{{ formatFieldName(field.key) }}:</label>
+                  <input
+                    type="datetime-local"
+                    [value]="editedCard()[field.key] || ''"
+                    (input)="updateEditedField(field.key, $any($event.target).value)"
+                    class="edit-input">
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Auxiliary Numeric Fields -->
+          @if (auxiliaryNumericFields().length > 0) {
+            <div class="field-group">
+              <h4>Numeric Fields</h4>
+              @for (field of auxiliaryNumericFields(); track field.key) {
+                <div class="edit-field">
+                  <label>{{ formatFieldName(field.key) }}:</label>
+                  <input
+                    type="number"
+                    [value]="editedCard()[field.key] || ''"
+                    (input)="updateEditedField(field.key, $any($event.target).value)"
+                    class="edit-input">
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Auxiliary Array Fields -->
+          @if (auxiliaryArrayFields().length > 0) {
+            <div class="field-group">
+              <h4>Array Fields</h4>
+              @for (field of auxiliaryArrayFields(); track field.key) {
+                <div class="edit-field">
+                  <label>{{ formatFieldName(field.key) }}:</label>
+                  <textarea
+                    [value]="editedCard()[field.key] || ''"
+                    (input)="updateEditedField(field.key, $any($event.target).value)"
+                    class="edit-input"
+                    rows="2"
+                    placeholder="Enter comma-separated values">
+                  </textarea>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="edit-actions">
+          <button (click)="cancelEdit()" class="btn btn-secondary" type="button">
+            Cancel
+          </button>
+          <button
+            (click)="saveEditedCard()"
+            class="btn btn-primary"
+            [disabled]="processingEdit()"
+            type="button">
+            {{ processingEdit() ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Flippable Card Display -->
+    @if (!isEditing() && currentCard()) {
+      <div
+        class="card"
+        [class.flipped]="isCardFlipped()"
+        (click)="handleCardClick($event)">
+
+        <!-- Clickable area for flipping -->
+        <div class="clickable-area"></div>
+
+        <!-- Front Side -->
+        <div class="card-side card-front">
+          <div class="card-content no-pointer-events">
+            <div class="fields-grid pointer-events-auto">
+              @for (field of allMainFields(); track field.key) {
+                <!-- Visible fields -->
+                @if (!isFieldCurrentlyHidden(field.key) && !isFieldPendingHidden(field.key)) {
+                  <div
+                    class="unified-field-item"
+                    (click)="$event.stopPropagation(); toggleHiddenField(field.key)"
+                    role="button"
+                    tabindex="0"
+                    (keydown.enter)="toggleHiddenField(field.key)"
+                    (keydown.space)="$event.preventDefault(); toggleHiddenField(field.key)">
+                    <div class="field-header">
+                      <span class="field-name">{{ formatFieldName(field.key) }}</span>
+                      <span class="visibility-indicator">
+                        <span class="will-show-icon">👁️</span>
+                      </span>
+                    </div>
+                    <div class="field-content">
+                      {{ field.value }}
+                    </div>
+                  </div>
+                }
+
+                <!-- Pending hidden fields -->
+                @if (!isFieldCurrentlyHidden(field.key) && isFieldPendingHidden(field.key)) {
+                  <div
+                    class="unified-field-item pending-hidden"
+                    (click)="$event.stopPropagation(); toggleHiddenField(field.key)"
+                    role="button"
+                    tabindex="0"
+                    (keydown.enter)="toggleHiddenField(field.key)"
+                    (keydown.space)="$event.preventDefault(); toggleHiddenField(field.key)">
+                    <div class="field-header">
+                      <span class="field-name">{{ formatFieldName(field.key) }}</span>
+                      <span class="visibility-indicator">
+                        <span class="pending-hidden-icon">👁️‍🗨️</span>
+                      </span>
+                    </div>
+                    <div class="field-content">
+                      {{ field.value }}
+                    </div>
+                  </div>
+                }
+
+                <!-- Hidden fields (revealed state) -->
+                @if (isFieldCurrentlyHidden(field.key) && answersRevealed()) {
+                  <div
+                    class="unified-field-item revealed-field"
+                    (click)="$event.stopPropagation(); toggleHiddenField(field.key)"
+                    role="button"
+                    tabindex="0"
+                    (keydown.enter)="toggleHiddenField(field.key)"
+                    (keydown.space)="$event.preventDefault(); toggleHiddenField(field.key)">
+                    <div class="field-header">
+                      <span class="field-name">{{ formatFieldName(field.key) }}</span>
+                      <span class="visibility-indicator">
+                        @if (isFieldPendingHidden(field.key)) {
+                          <span class="will-hide-icon">👁️‍🗨️</span>
+                        } @else {
+                          <span class="pending-visible-icon">👁️</span>
+                        }
+                      </span>
+                    </div>
+                    <div class="field-content revealed-content">
+                      {{ field.value }}
+                    </div>
+                  </div>
+                }
+
+                <!-- Hidden fields (placeholder state) -->
+                <!-- Hidden fields (placeholder state) -->
+@if (isFieldCurrentlyHidden(field.key) && !answersRevealed()) {
+  <div
+    class="unified-field-item hidden-field"
+    (click)="$event.stopPropagation(); toggleHiddenField(field.key)"
+    role="button"
+    tabindex="0"
+    (keydown.enter)="toggleHiddenField(field.key)"
+    (keydown.space)="$event.preventDefault(); toggleHiddenField(field.key)">
+    <div class="field-header">
+      <span class="field-name">{{ formatFieldName(field.key) }}</span>
+      <span class="visibility-indicator">
+        @if (isFieldPendingHidden(field.key)) {
+          <span class="will-hide-icon">👁️‍🗨️</span>
+        } @else {
+          <span class="pending-visible-icon">👁️</span>
+        }
+      </span>
+    </div>
+    <div class="field-content hidden-content masked-text">
+      {{ field.value }}
+    </div>
+  </div>
+}
+              }
+    </div>
+          </div>
+
+          <div class="card-bottom pointer-events-auto">
+            <div class="button-row">
+              <button
+                (click)="$event.stopPropagation(); previousCard()"
+                [disabled]="isFirstCard()"
+                class="btn btn-nav"
+                type="button">
+                ←
+              </button>
+
+              @if (!answersRevealed() && hasHiddenFields()) {
+                <button
+                  (click)="$event.stopPropagation(); revealAnswers()"
+                  class="btn btn-reveal"
+                  type="button">
+                  Reveal Hidden Fields (Space)
+                </button>
+              }
+
+              @if (answersRevealed() || !hasHiddenFields()) {
+                <div class="review-buttons">
+                  <button
+                    (click)="$event.stopPropagation(); rateCard(false)"
+                    class="btn btn-incorrect"
+                    [disabled]="processingRating()"
+                    type="button">
+                    {{ processingRating() ? 'Saving...' : '✗' }}
+                  </button>
+                  <button
+                    (click)="$event.stopPropagation(); rateCard(true)"
+                    class="btn btn-correct"
+                    [disabled]="processingRating()"
+                    type="button">
+                    {{ processingRating() ? 'Saving...' : '✓' }}
+                  </button>
+                </div>
+
+              }
+
+              <button
+                (click)="$event.stopPropagation(); nextCard()"
+                [disabled]="isLastCard()"
+                class="btn btn-nav"
+                type="button">
+                →
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+
+        <!-- Back Side -->
+        <div class="card-side card-back">
+          <div class="card-content no-pointer-events">
+            <div class="back-buttons pointer-events-auto">
+              <button
+                (click)="$event.stopPropagation(); enterEditMode()"
+                class="btn btn-edit"
+                type="button">
+                Edit (E)
+              </button>
+              <button
+                (click)="$event.stopPropagation(); showDeleteDialog()"
+                class="btn btn-delete"
+                type="button">
+                Delete (D)
+              </button>
+            </div>
+
+            <div class="back-fields pointer-events-auto">
+              @if (currentCard()) {
+                <ul class="back-fields pointer-events-auto">
+  @for (field of backMetadataFields(); track field.key) {
+    <li>
+      <strong>{{ field.displayName }}:</strong>
+      <span>{{ formatFieldValue(field.value) }}</span>
+    </li>
+  }
+</ul>
+              }
+            </div>
+            <label class="skip-score-update pointer-events-auto" (click)="$event.stopPropagation()">
+  <input
+    type="checkbox"
+    [checked]="skipScoreUpdate()"
+    (change)="skipScoreUpdate.set($any($event.target).checked)"
+    (click)="$event.stopPropagation()">
+  Don't update score
+</label>
+          </div>
+
+        </div>
+      </div>
+
+    }
+  </div>
+
+    <!-- Session stats (during review) -->
+    @if (totalReviewed() >= 0) {
+      <div class="session-stats">
+        <span class="stat correct-stat">✓ {{ correctCount() }}</span>
+        <span class="stat incorrect-stat">✗ {{ incorrectCount() }}</span>
+        <span class="stat accuracy-stat">{{ accuracyPercentage() }}%</span>
+      </div>
+    }
+}
+
+<!-- No cards message -->
+@if (!hasCards() && !reviewCompleted()) {
+  <div class="no-cards">
+    <h3>No cards available</h3>
+    <p>There are no cards to review in this deck.</p>
+    <button (click)="navigateToDecks()" class="btn btn-primary" type="button">
+      Back to Decks
+    </button>
+  </div>
+}
+
+<!-- Error message -->
+@if (error()) {
+  <div class="error-message">
+    {{ error() }}
+  </div>
+}

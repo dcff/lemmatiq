@@ -1,0 +1,18 @@
+<div class="upload-dialog">
+  <h2>Upload CSV</h2>
+
+  <input type="file" accept=".csv" (change)="handleFileChange($event)" />
+
+  @if (loading()) {
+    <div>Uploading...</div>
+  }
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+  @if (success()) {
+    <div class="success">Cards uploaded successfully!</div>
+  }
+
+  <button (click)="closeDialog()">Close</button>
+</div>
+

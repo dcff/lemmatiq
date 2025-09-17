@@ -1,0 +1,57 @@
+<div class="user-profile-container">
+
+  <!-- Loading state -->
+  @if (loading()) {
+    <div class="loading">
+      Loading profile...
+    </div>
+  }
+
+  <!-- Error state -->
+  @if (error()) {
+    <div class="error">
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Profile details -->
+  @if (!loading() && !error() && profileFields().length > 0) {
+    <div class="profile-fields">
+      <h2>User Profile</h2>
+      <ul>
+        @for (field of profileFields(); track field.key) {
+          <li>
+            <strong>{{ field.displayName }}:</strong>
+            <span>{{ formatValue(field.value) }}</span>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
+  <!-- Delete confirmation dialog -->
+  @if (showDeleteConfirmation()) {
+    <div class="delete-confirmation">
+      <p>Are you sure you want to delete your account? This action cannot be undone.</p>
+      <button (click)="deleteProfile()" [disabled]="deleting()">Yes, delete my account</button>
+      <button (click)="cancelDelete()" [disabled]="deleting()">Cancel</button>
+    </div>
+  }
+
+  <!-- Deletion progress -->
+  @if (deleting()) {
+    <div class="deletion-progress">
+      <p>{{ deletionProgress() }}</p>
+    </div>
+  }
+
+
+  <!-- Show delete button only if there is a valid profile and not already deleting/confirming -->
+  @if (!loading() && !error() && profileFields().length > 0 && !deleting() && !showDeleteConfirmation()) {
+    <button class="delete-btn" (click)="confirmDeleteProfile()">
+      Delete Account
+    </button>
+  }
+
+</div>
+

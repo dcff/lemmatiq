@@ -1,0 +1,51 @@
+/* Ensure the entire app uses dark mode */
+html, body, app-root {
+  background-color: #a0a0a0; /* dark background everywhere */
+  color: #e0e0e0;
+  font-family: "Inter", sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+/* Headings */
+h1 {
+  color: #f5f5f5;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* Links */
+a {
+  color: #ff6600; /* orange accent */
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #ffa64d;
+  text-decoration: underline;
+}
+
+/* Optional: global button style */
+button {
+  background: none;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  color: #e0e0e0;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  background: #ff6600;
+  border-color: #ff6600;
+  color: #0a0a0a;
+}
+
+.app-content {
+  padding-top: 120px; /* match header height */
+}

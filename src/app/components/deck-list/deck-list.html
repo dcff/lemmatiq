@@ -1,0 +1,191 @@
+<div class="deck-list-container">
+  <h2>Deck List</h2>
+
+  @if (loading()) {
+    <div class="loading">Loading decks...</div>
+  } @else if (error()) {
+    <div class="error">Error: {{ error() }}</div>
+  } @else {
+    <div class="decks-container">
+      @for (deck of decks(); track deck.id) {
+        <div class="deck-item-wrapper">
+          <div class="flip-card" [class.flipped]="deck.isEditing">
+
+            <!-- Front side (view mode) -->
+            <div class="flip-card-front" (click)="editDeck($event, deck.id)">
+              <div class="deck-header">
+                <div class="deck-title-container">
+                  <h3 class="deck-title">{{ getField(deck, 'name')?.value || 'Untitled Deck' }}</h3>
+                  <small class="deck-id">{{ deck.id }}</small>
+                </div>
+              </div>
+
+              @for (key of fieldOrder; track key) {
+                @if (key !== 'name') {
+                  <div class="deck-field">
+                    <span class="field-label">{{ getField(deck, key)?.displayName || '' }}:</span>
+                    <span class="field-value">{{ formatValue(getField(deck, key)?.value || '') }}</span>
+                  </div>
+                }
+              }
+
+              <div class="deck-action">
+                <div class="button-group">
+                  <!--
+                  <button
+                    class="edit-button"
+                    (click)="editDeck($event, deck.id)"
+                    title="Edit deck">
+                    Edit
+                  </button>
+                  -->
+                  <button
+                    class="go-to-cards-button"
+                    (click)="navigateToDeck(deck.id)"
+                    title="Go to cards">
+                    Go to Cards
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Back side (edit mode) -->
+            <div class="flip-card-back">
+              <div class="deck-header">
+                <div class="deck-title-container">
+                  <!-- Editable name field in place of title -->
+                  <input
+                    type="text"
+                    class="deck-title-input"
+                    [value]="getEditableValue(deck, 'name')"
+                    (input)="updateEditableField(deck.id, 'name', ($any($event.target)).value)"
+                    placeholder="Enter deck name"
+                    [disabled]="isDeckSaving(deck.id) || isDeckDeleting(deck.id)">
+                  <small class="deck-id">{{ deck.id }}</small>
+                </div>
+              </div>
+
+              <!-- Editable description field without label -->
+              <div class="deck-description-edit">
+                <input
+                  type="text"
+                  class="deck-description-input"
+                  [value]="getEditableValue(deck, 'description')"
+                  (input)="updateEditableField(deck.id, 'description', ($any($event.target)).value)"
+                  placeholder="Enter description"
+                  [disabled]="isDeckSaving(deck.id) || isDeckDeleting(deck.id)">
+              </div>
+
+
+              @for (key of fieldOrder; track key) {
+  @if (key !== 'name' && key !== 'description') {
+    @if (getField(deck, key) && !getField(deck, key)!.isFixed) {
+      <div class="deck-field edit-field">
+        <label class="field-label">{{ getField(deck, key)?.displayName || '' }}:</label>
+        @if (typeof getEditableValue(deck, key) === 'boolean') {
+          <select
+            class="field-input"
+            [value]="getEditableValue(deck, key)"
+            (change)="updateEditableField(deck.id, key, ($any($event.target)).value === 'true')"
+            [disabled]="isDeckSaving(deck.id) || isDeckDeleting(deck.id)">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        } @else if (typeof getEditableValue(deck, key) === 'number') {
+          <input
+            type="number"
+            class="field-input"
+            [value]="getEditableValue(deck, key)"
+            (input)="updateEditableField(deck.id, key, ($any($event.target)).value)"
+            [disabled]="isDeckSaving(deck.id) || isDeckDeleting(deck.id)">
+        } @else {
+          <input
+            type="text"
+            class="field-input"
+            [value]="getEditableValue(deck, key)"
+            (input)="updateEditableField(deck.id, key, ($any($event.target)).value)"
+            placeholder="Enter {{ getField(deck, key)?.displayName?.toLowerCase() }}"
+            [disabled]="isDeckSaving(deck.id) || isDeckDeleting(deck.id)">
+        }
+      </div>
+    } @else {
+      <div class="deck-field">
+        <span class="field-label">{{ getField(deck, key)?.displayName || '' }}:</span>
+        <span class="field-value readonly">{{ formatValue(getField(deck, key)?.value || '') }}</span>
+      </div>
+    }
+  }
+}
+
+<div class="deck-action edit-actions">
+  <!-- Left buttons -->
+  <button
+    class="save-button"
+    (click)="saveDeck($event, deck.id)"
+    [disabled]="isDeckSaving(deck.id) || isDeckDeleting(deck.id)"
+    title="Save changes">
+    {{ isDeckSaving(deck.id) ? 'Saving...' : 'Save' }}
+  </button>
+  <button
+    class="cancel-button"
+    (click)="editDeck($event, deck.id)"
+    [disabled]="isDeckSaving(deck.id) || isDeckDeleting(deck.id)">
+    Cancel
+  </button>
+
+  <!-- Right button -->
+  <button
+    class="delete-button"
+    (click)="confirmDeleteDeck($event, deck.id)"
+    [disabled]="isDeckSaving(deck.id) || isDeckDeleting(deck.id)"
+    title="Delete deck">
+    {{ isDeckDeleting(deck.id) ? 'Deleting...' : 'Delete' }}
+  </button>
+</div>
+
+
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+
+<!-- Delete confirmation dialog -->
+@if (showDeleteConfirmation()) {
+  <div class="delete-confirmation">
+    <div class="modal-box">
+      <p>Are you sure you want to delete "{{ deckToDelete()?.name }}"? This action cannot be undone.</p>
+      <div class="actions">
+        <button (click)="deleteDeck()" [disabled]="deletingDecks().has(deckToDelete()?.id || '')">
+          {{ deletingDecks().has(deckToDelete()?.id || '') ? 'Deleting...' : 'Yes, delete this deck' }}
+        </button>
+        <button (click)="cancelDelete()" [disabled]="deletingDecks().has(deckToDelete()?.id || '')">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+
+  <!-- Delete confirmation dialog
+  @if (showDeleteConfirmation()) {
+    <div class="delete-confirmation">
+      <p>Are you sure you want to delete "{{ deckToDelete()?.name }}"? This action cannot be undone.</p>
+      <button (click)="deleteDeck()" [disabled]="deletingDecks().has(deckToDelete()?.id || '')">
+        {{ deletingDecks().has(deckToDelete()?.id || '') ? 'Deleting...' : 'Yes, delete this deck' }}
+      </button>
+      <button (click)="cancelDelete()" [disabled]="deletingDecks().has(deckToDelete()?.id || '')">Cancel</button>
+    </div>
+  }
+-->
+
+  <button
+      class="add-button"
+      (click)="addDeck()"
+      title="add deck">
+      Add Deck
+  </button>
+</div>

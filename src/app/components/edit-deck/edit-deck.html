@@ -1,0 +1,126 @@
+<div class="edit-deck-container">
+  <!-- Header -->
+  <div class="header">
+    <button class="back-button" (click)="goBack()">← Back to Decks</button>
+    <h1>Edit Deck</h1>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Loading deck details...</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="error-container">
+      <div class="error-message">
+        <h3>Error</h3>
+        <p>{{ error() }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- Deck -->
+  @if (!loading() && !error() && deck()) {
+    <div class="deck-content">
+      <div class="deck-overview">
+        <h2>{{ deck()?.data?.name || 'Unnamed Deck' }}</h2>
+        <p class="deck-id">Deck ID: {{ deckId() }}</p>
+      </div>
+
+      <!-- Fixed Fields -->
+      @if (fixedFields().length > 0) {
+        <div class="fields-section">
+          <h3>System Information</h3>
+          <div class="fields-grid fixed-fields">
+            @for (field of fixedFields(); track field.key) {
+              <div class="field-item fixed">
+                <label class="field-label">{{ field.displayName }}</label>
+                <div class="field-value">{{ formatValue(field.value) }}</div>
+                <span class="field-type-badge">Read Only</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Editable Fields -->
+      <div class="fields-section">
+        <h3>Editable Fields</h3>
+        <div class="fields-grid editable-fields">
+          @for (field of editableFields(); track field.key) {
+            <div class="field-item editable">
+              <label class="field-label">{{ field.displayName }}</label>
+
+              <!-- Boolean -->
+              @if (typeof field.value === 'boolean') {
+                <select
+                  class="field-input select-input"
+                  [value]="field.value"
+                  (change)="updateField(field.key, getSelectValue($event))">
+                  <option [value]="true">Yes</option>
+                  <option [value]="false">No</option>
+                </select>
+              }
+              <!-- Array -->
+              @else if (isArray(field.value)) {
+                <input
+                  type="text"
+                  class="field-input"
+                  [value]="field.value.join(', ')"
+                  (input)="updateField(field.key, getInputValue($event))">
+              }
+              <!-- Number -->
+              @else if (typeof field.value === 'number') {
+                <input
+                  type="number"
+                  class="field-input"
+                  [value]="field.value"
+                  (input)="updateField(field.key, getInputValue($event))">
+              }
+              <!-- Text -->
+              @else {
+                <input
+                  type="text"
+                  class="field-input"
+                  [value]="field.value"
+                  (input)="updateField(field.key, getInputValue($event))">
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions-section">
+        <button
+          class="save-button"
+          [disabled]="saving() || !hasUnsavedChanges()"
+          (click)="saveChanges()">
+          @if (saving()) { Saving... } @else { Save Changes }
+        </button>
+        <button class="cancel-button" (click)="goBack()">Cancel</button>
+      </div>
+
+    <button
+      type="button"
+      class="upload-btn"
+        (click)="openUploadDialog()"
+    >
+    Upload CSV
+    </button>
+
+    @if (showUploadDialog() && deckId()) {
+      <app-card-upload
+        [deckId]="deckId()!"
+        (close)="showUploadDialog.set(false)"
+      />
+    }
+
+    </div>
+  }
+</div>
+

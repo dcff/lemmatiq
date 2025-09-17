@@ -1,0 +1,119 @@
+<div class="add-card-overlay" (click)="onOverlayClick($event)">
+  <div class="add-card-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Add New Card</h2>
+    </div>
+
+    @if (loading()) {
+      <div class="loading">Loading deck fields...</div>
+    } @else if (error()) {
+      <div class="error">{{ error() }}</div>
+    } @else {
+      <div class="add-card-form">
+        <div class="form-fields">
+          @for (field of editableFields(); track field.name) {
+            <div class="field-group">
+              <label [for]="field.name" class="field-label">
+                {{ field.displayName }}
+                @if (field.required) {
+                  <span class="required">*</span>
+                }
+              </label>
+
+              @switch (field.type) {
+                @case ('text') {
+                  <input
+                    [id]="field.name"
+                    type="text"
+                    [value]="formData()[field.name] || ''"
+                    (input)="updateFormField(field.name, $any($event.target).value)"
+                    class="form-input"
+                    [required]="field.required ?? false"
+                  />
+                }
+                @case ('number') {
+                  <input
+                    [id]="field.name"
+                    type="number"
+                    [value]="formData()[field.name] || ''"
+                    (input)="updateFormField(field.name, $any($event.target).value)"
+                    class="form-input"
+                    [placeholder]="'Enter ' + field.displayName.toLowerCase()"
+                    [required]="field.required ?? false"
+                  />
+                }
+                @case ('boolean') {
+                  <select
+                    [id]="field.name"
+                    [value]="formData()[field.name] || ''"
+                    (change)="updateFormField(field.name, $any($event.target).value)"
+                    class="form-select"
+                    [required]="field.required ?? false"
+                  >
+                    <option value="">Select...</option>
+                    <option value="true">True</option>
+                    <option value="false">False</option>
+                  </select>
+                }
+              }
+            </div>
+          }
+
+          @if (timestampFields().length > 0) {
+            <div class="timestamp-info">
+              <h3>Automatic Fields</h3>
+              @for (field of timestampFields(); track field.name) {
+                <div class="readonly-field">
+                  <span class="field-label">{{ field.displayName }}:</span>
+                  <span class="field-value">Will be set automatically</span>
+                </div>
+              }
+            </div>
+          }
+
+          @if (hiddenFields().length > 0) {
+            <div class="hidden-info">
+              <h3>Hidden Fields</h3>
+              @for (field of hiddenFields(); track field.name) {
+                <div class="readonly-field">
+                  <span class="field-label">{{ field.displayName }}:</span>
+                  <span class="field-value">Empty (hidden)</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="closeModal()">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn-primary"
+            [disabled]="saving() || !isFormValid()"
+            (click)="onSubmit('close')"
+          >
+            @if (saving() && saveAction() === 'close') {
+              Saving...
+            } @else {
+              Save & Close
+            }
+          </button>
+          <button
+            type="button"
+            class="btn-success"
+            [disabled]="saving() || !isFormValid()"
+            (click)="onSubmit('continue')"
+          >
+            @if (saving() && saveAction() === 'continue') {
+              Saving...
+            } @else {
+              Save & Add Another
+            }
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

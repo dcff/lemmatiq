@@ -1,0 +1,94 @@
+:root {
+  --primary-color: #8c8c8c;
+  --secondary-color: #404040;
+  --background-color: #262626;
+  --text-color: #f2f2f2;
+  --highlight-color: #ff6700;
+  --box-shadow-color: rgba(0,0,0,0.5);
+  --custom_font-size: 1rem;
+}
+
+
+/*box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  on deck-list: box-shadow: 0 0 10px rgba(255, 102, 0, 0.3);
+*/
+
+html, body, app-root {
+  background-color: var(--background-color); /* softer dark grey instead of pure black */
+  color: var(--primary-color);           /* softer grey for text */
+  font-family: 'Oxanium', sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3 {
+  font-family: 'Oxanium', sans-serif;
+  font-weight: 600;
+  text-align: center;
+  color: var(--highlight-color);
+}
+
+h1 {
+  font-size: 2.5rem;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+button {
+  background: none;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  font-size: 0.9rem;
+
+  font-family: 'Oxanium', sans-serif;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+button:hover {
+  background: var(--highlight-color);
+  border-color: var(--highlight-color);
+  color: var(--background-color);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+a {
+  text-decoration: none;
+  color: var(--text-color);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  cursor: pointer;
+}
+
+a:visited {
+  color: var(--text-color);
+}
+
+a:hover {
+  color: var(--highlight-color);
+  background: none;
+}
+
+a.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+
+
+
+
