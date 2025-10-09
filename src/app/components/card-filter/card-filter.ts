@@ -68,8 +68,9 @@ export class CardFilter {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private readonly state = inject(FlashcardStateService);
-  showUploadDialog = signal(false);
-  showAddCardDialog = signal(false); // Add this line after showUploadDialog
+  showUploadSection = signal(false);
+  showAddCardSection = signal(false);
+  showFilterSection = signal(false);
   deckId = signal<string | null>(null);
   // Add shuffle state
 isShuffled = signal(false);
@@ -126,8 +127,6 @@ isShuffled = signal(false);
     });
   }
 
-
-
    // Fisher-Yates shuffle algorithm
   private shuffleArray<T>(array: T[]): T[] {
     const shuffled = [...array];
@@ -151,6 +150,34 @@ isShuffled = signal(false);
   resetCardOrder() {
     this.applyFilters(); // This will restore the original filtered order
     this.isShuffled.set(false);
+  }
+
+  // Header button methods
+  toggleUpload() {
+    this.showUploadSection.set(!this.showUploadSection());
+    // Close other sections when upload is opened
+    if (this.showUploadSection()) {
+      this.showAddCardSection.set(false);
+      this.showFilterSection.set(false);
+    }
+  }
+
+  toggleAddCard() {
+    this.showAddCardSection.set(!this.showAddCardSection());
+    // Close other sections when add card is opened
+    if (this.showAddCardSection()) {
+      this.showUploadSection.set(false);
+      this.showFilterSection.set(false);
+    }
+  }
+
+  toggleFilter() {
+    this.showFilterSection.set(!this.showFilterSection());
+    // Close other sections when filter is opened
+    if (this.showFilterSection()) {
+      this.showUploadSection.set(false);
+      this.showAddCardSection.set(false);
+    }
   }
 
   // Check if a value is a timestamp (Firebase Timestamp or Date or number)
@@ -625,33 +652,19 @@ async analyzeCards() {
     this.router.navigate(['/review']);
   }
 
-  // Add these methods
-openAddCardDialog() {
-  this.showAddCardDialog.set(true);
-}
+  // Updated Add Card methods for inline component
+  onCardAdded(action: 'close' | 'continue') {
+    this.analyzeCards(); // Always refresh data
 
-
-onCardAdded(action: 'close' | 'continue') {
-  this.analyzeCards(); // Always refresh data
-
-  if (action === 'close') {
-    this.showAddCardDialog.set(false); // Only close for "Save & Close"
-  }
-}
-
-onAddCardModalClosed() {
-  this.showAddCardDialog.set(false);
-}
-
-  openUploadDialog() {
-    console.log('Deck Id is', `${this.deckId}`);
-    this.showUploadDialog.set(true);
+    if (action === 'close') {
+      this.showAddCardSection.set(false); // Close the inline component
+    }
   }
 
-
-  //navigateBackToDecks() {
-  //  this.router.navigate(['/decks']);
-  //}
+  onCardsUploaded() {
+    this.showUploadSection.set(false);
+    this.analyzeCards();
+  }
 
   formatFieldName(fieldName: string) {
     return fieldName
@@ -661,16 +674,7 @@ onAddCardModalClosed() {
       .trim();
   }
 
-  //getSearchPlaceholder(field: TextualField): string {
-  //  return `Search ${field.displayName.toLowerCase()}... (supports regex patterns)`;
-  //}
-
   getFieldsByType(fieldType: string) {
   return this.filterFields().filter(field => field.type === fieldType);
 }
-
-  onCardsUploaded() {
-    this.showUploadDialog.set(false);
-    this.analyzeCards();
-  }
 }

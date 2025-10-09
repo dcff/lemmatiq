@@ -492,13 +492,7 @@ async saveCard() {
   }
 
   closeModal() {
-    console.log('🚪 closeModal called - emitting modalClosed');
     this.modalClosed.emit();
   }
 
-  onOverlayClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
-      this.closeModal();
-    }
-  }
 }

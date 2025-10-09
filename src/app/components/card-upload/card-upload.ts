@@ -74,6 +74,7 @@ export class CardUpload {
       card['hiddenFields'] = secondFieldName ? [secondFieldName] : [];
       card['createdAt'] = serverTimestamp();
       card['lastReviewedAt'] = serverTimestamp();
+      card['reviewCount'] = 0;
 
       await addDoc(cardsCollection, card);
     }

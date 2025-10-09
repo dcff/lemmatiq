@@ -1,9 +1,7 @@
 .upload-dialog {
-  padding: 16px;
-  background: #1c1c1c;
-  color: white;
+  background: var(--background-color);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 
 .error {
@@ -12,5 +10,15 @@
 
 .success {
   color: #4caf50;
+}
+
+h2 {
+  color: var(--primary-color);
+}
+
+.upload-dialog {
+  position: relative; /* instead of fixed/absolute */
+  margin: 4rem 1rem 0;
+  padding: 1rem;
 }
 

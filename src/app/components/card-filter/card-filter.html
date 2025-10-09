@@ -17,178 +17,177 @@
 
   <!-- Main Content -->
   @if (!loading() && !error()) {
-    <div class="filters-main">
-      <!-- Header -->
-      <div class="filters-header">
-        <h2>Filter Cards</h2>
+    <!-- Header with Action Buttons -->
+    <div class="header-actions">
+      <button (click)="toggleUpload()" [class.active]="showUploadSection()">Upload Cards</button>
+      <button (click)="toggleAddCard()" [class.active]="showAddCardSection()">Add Card</button>
+      <button (click)="toggleFilter()" [class.active]="showFilterSection()">Filter</button>
+      <button class="primary-button" [disabled]="filteredCount() === 0" (click)="goToFlashcards()">
+        Start Review ({{ filteredCount() }} cards)
+      </button>
+    </div>
+
+    <!-- Inline Upload Component -->
+    @if (showUploadSection()) {
+      <div class="inline-section">
+        <app-card-upload [deckId]="deckId()!" (close)="showUploadSection.set(false)" (cardsUploaded)="onCardsUploaded()"></app-card-upload>
       </div>
+    }
 
-      <!-- No filterable fields -->
-      @if (!hasFilterFields()) {
-        <div class="no-filters">
-          <p>No filterable fields found.</p>
-        </div>
-      }
+    <!-- Inline Add Card Component -->
+    @if (showAddCardSection()) {
+      <div class="inline-section">
+        <app-add-card
+          [deckName]="deckName()"
+          [existingCards]="allCards()"
+          (cardAdded)="onCardAdded($event)"
+          (modalClosed)="showAddCardSection.set(false)"
+        />
+      </div>
+    }
 
-      <!-- Filter Fields -->
-      @if (hasFilterFields()) {
-        <div class="filter-fields">
-          @for (field of filterFields(); track field.name) {
-            <div class="filter-card">
-              <label class="field-label">{{ field.displayName }}</label>
+    <!-- Filter Section -->
+    @if (showFilterSection()) {
+      <div class="inline-section">
+        <div class="filters-main">
+          <!-- Filter Header -->
+          <div class="filters-header">
+            <h3>Filter Cards</h3>
+          </div>
 
-              <!-- Numeric Field -->
-              @if (field.type === 'numeric') {
-                <div class="numeric-controls">
-                  <div class="range-input-group">
-                    <label class="range-label">Min:</label>
-                    <input
-                      type="number"
-                      class="range-input"
-                      [value]="field.currentMin"
-                      (input)="updateNumericField(field, 'currentMin', $any($event.target).value)"
-                      [min]="field.min"
-                      [max]="field.max"
-                    />
-                  </div>
+          <!-- No filterable fields -->
+          @if (!hasFilterFields()) {
+            <div class="no-filters">
+              <p>No filterable fields found.</p>
+            </div>
+          }
 
-                  <div class="range-slider-container">
-                    <input
-                      type="range"
-                      class="range-slider min-slider"
-                      [value]="field.currentMin"
-                      (input)="updateNumericField(field, 'currentMin', $any($event.target).value)"
-                      [min]="field.min"
-                      [max]="field.max"
-                      [step]="1"
-                    />
-                    <input
-                      type="range"
-                      class="range-slider max-slider"
-                      [value]="field.currentMax"
-                      (input)="updateNumericField(field, 'currentMax', $any($event.target).value)"
-                      [min]="field.min"
-                      [max]="field.max"
-                      [step]="1"
-                    />
-                  </div>
+          <!-- Filter Fields -->
+          @if (hasFilterFields()) {
+            <div class="filter-fields">
+              @for (field of filterFields(); track field.name) {
+                <div class="filter-card">
+                  <label class="field-label">{{ field.displayName }}</label>
 
-                  <div class="range-input-group">
-                    <label class="range-label">Max:</label>
-                    <input
-                      type="number"
-                      class="range-input"
-                      [value]="field.currentMax"
-                      (input)="updateNumericField(field, 'currentMax', $any($event.target).value)"
-                      [min]="field.min"
-                      [max]="field.max"
-                    />
-                  </div>
-                </div>
-              }
+                  <!-- Numeric Field -->
+                  @if (field.type === 'numeric') {
+                    <div class="numeric-controls">
+                      <div class="range-input-group">
+                        <label class="range-label">Min:</label>
+                        <input
+                          type="number"
+                          class="range-input"
+                          [value]="field.currentMin"
+                          (input)="updateNumericField(field, 'currentMin', $any($event.target).value)"
+                          [min]="field.min"
+                          [max]="field.max"
+                        />
+                      </div>
 
-              <!-- Textual Field -->
-              @if (field.type === 'textual') {
-                <div class="text-search">
-                  <input
-                    type="text"
-                    [value]="field.searchText"
-                    (input)="updateTextualField(field, $any($event.target).value)"
-                  />
-                  @if (field.searchText.trim() !== '') {
-                    <button type="button" (click)="updateTextualField(field, '')" class="clear-btn">✕</button>
+                      <div class="range-slider-container">
+                        <input
+                          type="range"
+                          class="range-slider min-slider"
+                          [value]="field.currentMin"
+                          (input)="updateNumericField(field, 'currentMin', $any($event.target).value)"
+                          [min]="field.min"
+                          [max]="field.max"
+                          [step]="1"
+                        />
+                        <input
+                          type="range"
+                          class="range-slider max-slider"
+                          [value]="field.currentMax"
+                          (input)="updateNumericField(field, 'currentMax', $any($event.target).value)"
+                          [min]="field.min"
+                          [max]="field.max"
+                          [step]="1"
+                        />
+                      </div>
+
+                      <div class="range-input-group">
+                        <label class="range-label">Max:</label>
+                        <input
+                          type="number"
+                          class="range-input"
+                          [value]="field.currentMax"
+                          (input)="updateNumericField(field, 'currentMax', $any($event.target).value)"
+                          [min]="field.min"
+                          [max]="field.max"
+                        />
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Textual Field -->
+                  @if (field.type === 'textual') {
+                    <div class="text-search">
+                      <input
+                        type="text"
+                        [value]="field.searchText"
+                        (input)="updateTextualField(field, $any($event.target).value)"
+                      />
+                      @if (field.searchText.trim() !== '') {
+                        <button type="button" (click)="updateTextualField(field, '')" class="clear-btn">✕</button>
+                      }
+                    </div>
+                  }
+
+                  <!-- Boolean Field -->
+                  @if (field.type === 'boolean') {
+                    <div class="boolean-options">
+                      <label><input type="radio" [name]="field.name" value="all" [checked]="field.selectedValue==='all'" (change)="updateBooleanField(field, 'all')"/> All</label>
+                      <label><input type="radio" [name]="field.name" value="true" [checked]="field.selectedValue==='true'" (change)="updateBooleanField(field, 'true')"/> True</label>
+                      <label><input type="radio" [name]="field.name" value="false" [checked]="field.selectedValue==='false'" (change)="updateBooleanField(field, 'false')"/> False</label>
+                    </div>
+                  }
+
+                  <!-- Date Field -->
+                  @if (field.type === 'date') {
+                    <div class="date-range">
+                      <input type="date" [value]="formatDateForInput(field.currentMinDate)" (change)="updateDateField(field, 'currentMinDate', $any($event.target).value)" />
+                      <span>–</span>
+                      <input type="date" [value]="formatDateForInput(field.currentMaxDate)" (change)="updateDateField(field, 'currentMaxDate', $any($event.target).value)" />
+                      @if(field.currentMinDate || field.currentMaxDate) {
+                        <button
+                          type="button"
+                          class="clear-date-btn"
+                          (click)="updateDateField(field, 'currentMinDate', null); updateDateField(field, 'currentMaxDate', null)"
+                        >
+                          ✕
+                        </button>
+                      }
+                      <small class="help-text">
+                        {{ field.minDate | date:'mediumDate' }} – {{ field.maxDate | date:'mediumDate' }}
+                      </small>
+                    </div>
                   }
                 </div>
               }
+            </div>
 
-              <!-- Boolean Field -->
-              @if (field.type === 'boolean') {
-                <div class="boolean-options">
-                  <label><input type="radio" [name]="field.name" value="all" [checked]="field.selectedValue==='all'" (change)="updateBooleanField(field, 'all')"/> All</label>
-                  <label><input type="radio" [name]="field.name" value="true" [checked]="field.selectedValue==='true'" (change)="updateBooleanField(field, 'true')"/> True</label>
-                  <label><input type="radio" [name]="field.name" value="false" [checked]="field.selectedValue==='false'" (change)="updateBooleanField(field, 'false')"/> False</label>
-                </div>
+            <!-- Shuffle Controls -->
+            <div class="shuffle-controls">
+              @if (filteredCount() > 0) {
+                <button
+                  (click)="isShuffled() ? resetCardOrder() : shuffleCards()"
+                  [class.shuffled]="isShuffled()"
+                  [title]="isShuffled() ? 'Reset to original order' : 'Randomize card order'">
+                  {{ isShuffled() ? 'Reset Order' : 'Shuffle Cards' }}
+                </button>
               }
 
-              <!-- Date Field -->
-              @if (field.type === 'date') {
-                <div class="date-range">
-                  <input type="date" [value]="formatDateForInput(field.currentMinDate)" (change)="updateDateField(field, 'currentMinDate', $any($event.target).value)" />
-                  <span>–</span>
-                  <input type="date" [value]="formatDateForInput(field.currentMaxDate)" (change)="updateDateField(field, 'currentMaxDate', $any($event.target).value)" />
-                  @if(field.currentMinDate || field.currentMaxDate) {
-    <button
-      type="button"
-      class="clear-date-btn"
-      (click)="updateDateField(field, 'currentMinDate', null); updateDateField(field, 'currentMaxDate', null)"
-    >
-      ✕
-    </button>
-  }
-  <small class="help-text">
-    {{ field.minDate | date:'mediumDate' }} – {{ field.maxDate | date:'mediumDate' }}
-  </small>
+              @if (isShuffled()) {
+                <div class="shuffle-status">
+                  <span class="shuffled-indicator">
+                    Cards are shuffled
+                  </span>
                 </div>
               }
             </div>
           }
         </div>
-
-        <!-- Action -->
-        <div class="action-area">
-          <button class="primary-button" [disabled]="filteredCount() === 0" (click)="goToFlashcards()">
-            Start Review ({{ filteredCount() }} cards)
-          </button>
-        </div>
-      }
-    </div>
-  }
-
-
-  <!-- Add this section where you want the shuffle controls in your template -->
-<!-- Typically this would go with other action buttons like "Review All Cards" -->
-
-
-<!-- Alternative: Combined button with dynamic text -->
-<div class="shuffle-controls-alt">
-  @if (filteredCount() > 0) {
-    <button
-      (click)="isShuffled() ? resetCardOrder() : shuffleCards()"
-      [class.shuffled]="isShuffled()"
-      [title]="isShuffled() ? 'Reset to original order' : 'Randomize card order'">
-      {{ isShuffled() ? 'Reset Order' : 'Shuffle Cards' }}
-    </button>
-  }
-</div>
-
-<!-- Status indicator (optional) -->
-@if (filteredCount() > 0) {
-  <div class="shuffle-status">
-    @if (isShuffled()) {
-      <span class="shuffled-indicator">
-        Cards are shuffled
-      </span>
+      </div>
     }
-  </div>
-}
-  <!-- Upload & Add Card Buttons -->
-  <div class="top-actions">
-    <button (click)="openUploadDialog()">Upload CSV</button>
-    <button (click)="openAddCardDialog()">Add Card</button>
-  </div>
-
-  <!-- Upload Dialog -->
-  @if (showUploadDialog() && deckId()) {
-    <app-card-upload [deckId]="deckId()!" (close)="showUploadDialog.set(false)" (cardsUploaded)="onCardsUploaded()"></app-card-upload>
-  }
-
-  <!-- Add Card Dialog -->
-  @if (showAddCardDialog()) {
-    <app-add-card
-      [deckName]="deckName()"
-      [existingCards]="allCards()"
-      (cardAdded)="onCardAdded($event)"
-      (modalClosed)="onAddCardModalClosed()"
-    />
   }
 </div>
