@@ -2,7 +2,7 @@ import { Component, inject, signal, effect, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Firestore, collection, doc, setDoc, updateDoc, deleteDoc, serverTimestamp, getDocs, DocumentReference } from '@angular/fire/firestore';
+import { Firestore, collection, doc, setDoc, updateDoc, deleteDoc, deleteField, serverTimestamp, getDocs, DocumentReference } from '@angular/fire/firestore';
 import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
 
 interface Deck {
@@ -244,6 +244,14 @@ export class DeckList {
 
       // Now delete the deck document itself
       await deleteDoc(docRef);
+
+      // Remove the user's custom display order for this deck (if any) to avoid orphaned data
+      try {
+        const userDocRef = doc(this.firestore, `users/${user.uid}`);
+        await updateDoc(userDocRef, { [`deckDisplayOrders.${deckInfo.id}`]: deleteField() });
+      } catch {
+        // User doc or field may not exist — not critical
+      }
 
       // Remove from local state
       const currentDecks = this.deckData();

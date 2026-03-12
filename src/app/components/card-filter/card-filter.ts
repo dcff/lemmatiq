@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Firestore, collection, getDocs } from '@angular/fire/firestore';
+import { Firestore, collection, doc, getDoc, getDocs } from '@angular/fire/firestore';
 import { Auth, authState } from '@angular/fire/auth';
 import { FlashcardStateService } from '../../services/flashcard-state';
 import { CardUpload } from '../card-upload/card-upload';
@@ -299,7 +299,20 @@ async analyzeCards() {
       this.firestore,
       `users/${user.uid}/collections/${deckName}/cards`
     );
-    const querySnapshot = await getDocs(cardsCollection);
+
+    const deckDocRef = doc(this.firestore, `users/${user.uid}/collections/${deckName}`);
+    const userDocRef = doc(this.firestore, `users/${user.uid}`);
+
+    const [querySnapshot, deckSnap, userSnap] = await Promise.all([
+      getDocs(cardsCollection),
+      getDoc(deckDocRef),
+      getDoc(userDocRef)
+    ]);
+
+    // Resolve field order: user's custom order takes precedence over CSV column order
+    const deckFieldOrder: string[] = deckSnap.data()?.['fieldOrder'] ?? [];
+    const userDisplayOrders: Record<string, string[]> = userSnap.data()?.['deckDisplayOrders'] ?? {};
+    this.state.fieldOrder.set(userDisplayOrders[deckName] ?? deckFieldOrder);
 
     const cards: any[] = [];
     querySnapshot.forEach(doc => cards.push({ id: doc.id, ...doc.data() }));

@@ -62,13 +62,19 @@ export class FlashcardDisplay {
     return idx < cards.length ? cards[idx] : null;
   });
 
-  // All card fields
+  // All card fields, sorted by the resolved field order (CSV column order or user customisation)
   cardFields = computed(() => {
     const card = this.currentCard();
     if (!card) return [];
+    const fieldOrder = this.state.fieldOrder();
     return Object.entries(card)
       .filter(([k]) => k !== 'id')
-      .map(([k, v]) => ({ key: k, value: this.formatFieldValue(v) }));
+      .map(([k, v]) => ({ key: k, value: this.formatFieldValue(v) }))
+      .sort((a, b) => {
+        const ai = fieldOrder.indexOf(a.key);
+        const bi = fieldOrder.indexOf(b.key);
+        return (ai === -1 ? Infinity : ai) - (bi === -1 ? Infinity : bi);
+      });
   });
 
   // Main fields (text fields that are not auxiliary)

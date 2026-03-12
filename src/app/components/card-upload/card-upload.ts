@@ -85,7 +85,8 @@ export class CardUpload {
 
     await updateDoc(deckDocRef, {
       updatedAt: serverTimestamp(),
-      cardCount: totalCardCount
+      cardCount: totalCardCount,
+      fieldOrder: headers
     });
 
     this.success.set(true);
