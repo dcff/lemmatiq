@@ -327,9 +327,7 @@ handleCardClick(event: Event) {
 }
 
 allMainFields() {
-  const visible = this.visibleMainFields();
-  const hidden = this.hiddenMainFields();
-  return [...visible, ...hidden];
+  return this.mainFields();
 }
   // Delete current card
   async deleteCurrentCard() {
