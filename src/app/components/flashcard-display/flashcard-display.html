@@ -407,6 +407,13 @@
   </div>
 }
 
+<!-- Delete confirmation toast -->
+@if (deleteMessage()) {
+  <div class="delete-message">
+    {{ deleteMessage() }}
+  </div>
+}
+
 <!-- Error message -->
 @if (error()) {
   <div class="error-message">

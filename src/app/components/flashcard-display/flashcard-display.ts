@@ -41,6 +41,7 @@ export class FlashcardDisplay {
   processingDelete = signal(false);
   processingEdit = signal(false);
   error = signal<string | null>(null);
+  deleteMessage = signal<string | null>(null);
   skipScoreUpdate = signal(false);
   showDeleteConfirmation = signal(false);
   isEditing = signal(false);
@@ -355,12 +356,17 @@ allMainFields() {
       if (remainingCards.length === 0) {
         // No more cards, navigate back to decks
         this.navigateToDecks();
-      } else if (currentIdx >= remainingCards.length) {
-        // If we deleted the last card, go to the new last card
-        this.currentIndex.set(remainingCards.length - 1);
+      } else {
+        if (currentIdx >= remainingCards.length) {
+          // Deleted the last card in the list — step back to new last
+          this.currentIndex.set(remainingCards.length - 1);
+        }
+        // Reset reveal state for the card now being shown
+        this.answersRevealed.set(false);
+        // Show brief confirmation then auto-clear after 2 s
+        this.deleteMessage.set('Card deleted');
+        setTimeout(() => this.deleteMessage.set(null), 2000);
       }
-      // If we deleted a card in the middle, currentIndex stays the same
-      // which will automatically show the next card
 
       this.showDeleteConfirmation.set(false);
 
