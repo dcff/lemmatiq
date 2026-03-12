@@ -399,8 +399,7 @@
 <!-- No cards message -->
 @if (!hasCards() && !reviewCompleted()) {
   <div class="no-cards">
-    <h3>No cards available</h3>
-    <p>There are no cards to review in this deck.</p>
+    <h3>No cards left to review</h3>
     <button (click)="navigateToDecks()" class="btn btn-primary" type="button">
       Back to Decks
     </button>
@@ -409,8 +408,10 @@
 
 <!-- Delete confirmation toast -->
 @if (deleteMessage()) {
-  <div class="delete-message">
-    {{ deleteMessage() }}
+  <div class="modal-overlay">
+    <div class="modal">
+      <p>{{ deleteMessage() }}</p>
+    </div>
   </div>
 }
 

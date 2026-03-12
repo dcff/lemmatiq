@@ -2,7 +2,7 @@ import { Component, inject, signal, effect, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Firestore, collection, doc, setDoc, updateDoc, deleteDoc, deleteField, serverTimestamp, getDocs, DocumentReference } from '@angular/fire/firestore';
+import { Firestore, collection, doc, setDoc, updateDoc, deleteDoc, deleteField, serverTimestamp, getDocs, getCountFromServer, DocumentReference } from '@angular/fire/firestore';
 import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
 
 interface Deck {
@@ -70,16 +70,24 @@ export class DeckList {
         const collectionsRef = collection(this.firestore, `users/${user.uid}/collections`);
         const querySnapshot = await getDocs(collectionsRef);
 
-        const decks: Deck[] = [];
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          decks.push({
+        // Fetch live card counts for all decks in parallel
+        const deckDocs = querySnapshot.docs;
+        const cardCounts = await Promise.all(
+          deckDocs.map(d =>
+            getCountFromServer(collection(this.firestore, `users/${user.uid}/collections/${d.id}/cards`))
+              .then(snap => snap.data().count)
+          )
+        );
+
+        const decks: Deck[] = deckDocs.map((doc, i) => {
+          const data = { ...doc.data(), cardCount: cardCounts[i] };
+          return {
             id: doc.id,
-            data: data,
+            data,
             fields: this.convertToFields(data),
             isEditing: false,
-            editableData: { ...data } // Initialize editable copy
-          });
+            editableData: { ...data }
+          };
         });
 
         this.deckData.set(decks);

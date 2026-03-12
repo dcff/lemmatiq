@@ -353,20 +353,12 @@ allMainFields() {
       const remainingCards = this.cards();
       const currentIdx = this.currentIndex();
 
-      if (remainingCards.length === 0) {
-        // No more cards, navigate back to decks
-        this.navigateToDecks();
-      } else {
-        if (currentIdx >= remainingCards.length) {
-          // Deleted the last card in the list — step back to new last
-          this.currentIndex.set(remainingCards.length - 1);
-        }
-        // Reset reveal state for the card now being shown
-        this.answersRevealed.set(false);
-        // Show brief confirmation then auto-clear after 2 s
-        this.deleteMessage.set('Card deleted');
-        setTimeout(() => this.deleteMessage.set(null), 2000);
+      if (currentIdx >= remainingCards.length && remainingCards.length > 0) {
+        this.currentIndex.set(remainingCards.length - 1);
       }
+      this.answersRevealed.set(false);
+      this.deleteMessage.set('Card deleted');
+      setTimeout(() => this.deleteMessage.set(null), 2000);
 
       this.showDeleteConfirmation.set(false);
 
